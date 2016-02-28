@@ -50,7 +50,11 @@ namespace hello
 
 		public static void Main (string[] args)		{
 			//string ais = "aaaaaaaaaabc!AIVDM,1,1,,B,139eb:PP00PIHDNMdd6@0?vN2D2s,0*43";
-			string ais = "!AIVDM,2,1,9,B,53nFBv01SJ<thHp6220H4heHTf2222222222221?50:454o<`9QSlUDp,0*09";
+			//string ais = "!AIVDM,2,1,9,B,53nFBv01SJ<thHp6220H4heHTf2222222222221?50:454o<`9QSlUDp,0*09";
+			//string ais = "!AIVDM,2,1,9,B,53nFBv01SJ<thHp6220H4heHTf2222222222221?50:454o<`9QSlUDp888888888888880,0*09";
+			string ais = "!AIVDM,3,1,5,A,36KVnDh02wawaHPDA8T8h6tT8000t=AV=maD7?>BWiKIE@TR<2QfvaAF1ST4H31B,0*35";
+//			string ais = "!AIVDM,2,1,6,B,56:fS:D0000000000008v0<QD4r0`T4v3400000t0`D147?ps1P00000000000000000008,0*3D";
+//			
 
 			string six_bit = cariAIVM (ais);
 			string sBit = SixBitBiner (six_bit);
@@ -61,7 +65,8 @@ namespace hello
 			case 1:
 			case 2:
 			case 3:
-				if (sBit.Length == 168)
+				//if (sBit.Length == 168)
+					Console.WriteLine("Masuk ke Parsing T1_3");
 					ParsingT1_3 (sBit);
 				break;
 			case 5:
@@ -93,8 +98,8 @@ namespace hello
 			stt.hour = Convert.ToUInt16(bin2int(sBit.Substring (283, 5)));
 			stt.minute = Convert.ToUInt16(bin2int(sBit.Substring (288, 6)));
 			stt.draught = (float) ((bin2int(sBit.Substring (294, 8)))/10.0);
-			//stt.dest = str6bit(sBit.Substring (302, 120));
-			//stt.dte = Convert.ToBoolean(bin2int(sBit.Substring (422, 1)));
+			stt.dest = str6bit(sBit.Substring (302, 120));
+			stt.dte = Convert.ToBoolean(bin2int(sBit.Substring (422, 1)));
 
 			Console.WriteLine ("tip: {0}", stt.type);
 			Console.WriteLine ("rep: {0}", stt.repeat);
@@ -130,6 +135,8 @@ namespace hello
 				c = Convert.ToUInt32 (bin2int (str.Substring (x-1, 6)));
 				if (c>=32)
 					c += 0;
+				else if (c==0)
+					c += 0;
 				else {
 					c += 64;
 				}
@@ -147,7 +154,7 @@ namespace hello
 		}
 
 		static T1_3 ParsingT1_3(string sBit) {
-			//Console.WriteLine ("len: {1}, sBit: {0}", sBit, sBit.Length);
+			Console.WriteLine ("len: {1}, sBit: {0}", sBit, sBit.Length);
 			T1_3 stt = new T1_3();
 
 			stt.type = Convert.ToUInt16(bin2int(sBit.Substring (0, 6)));
@@ -194,8 +201,8 @@ namespace hello
 			stt.manuver = Convert.ToUInt16(bin2int(sBit.Substring (143, 2)));
 			stt.raim = Convert.ToBoolean(bin2int(sBit.Substring (148, 1)));
 
-			Console.WriteLine ("radio: {0}", bin2int(sBit.Substring (149)));
-			stt.radio = Convert.ToUInt32(bin2int(sBit.Substring (149)));
+			//Console.WriteLine ("radio: {0}", bin2int(sBit.Substring (149)));
+			stt.radio = Convert.ToUInt32(bin2int(sBit.Substring (149,19)));
 
 			Console.WriteLine ("tip: {0}", stt.type);
 			Console.WriteLine ("rep: {0}", stt.repeat);
