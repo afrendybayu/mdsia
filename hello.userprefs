@@ -1,12 +1,13 @@
-﻿<Properties>
+﻿<Properties StartupItem="hello/hello.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
   <MonoDevelop.Ide.Workbench ActiveDocument="hello/Program.cs">
     <Files>
-      <File FileName="hello/Program.cs" Line="35" Column="6" />
+      <File FileName="hello/Program.cs" Line="93" Column="7" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <AuthorInfo Name="afrendy" Email="afrendy@gmail.com" Copyright="afrendy" Company="" Trademark="" />
 </Properties>

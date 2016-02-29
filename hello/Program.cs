@@ -1,9 +1,30 @@
+
+#define DISP_DEBUG
+
 using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 
-struct T5 {
+struct T4 {
+	public UInt16 type;
+	public UInt16 repeat;
+	public UInt32 mmsi;
+	public UInt16 year;
+	public UInt16 month;
+	public UInt16 day;
+	public UInt16 hour;
+	public UInt16 minute;
+	public UInt16 second;
+	public Boolean accuracy;
+	public float lon;
+	public float lat;
+	public UInt16 epfd;
+	public Boolean raim;
+	public UInt32 radio;
+}
+
+struct T5 {				//
 	public UInt16 type;
 	public UInt16 repeat;
 	public UInt32 mmsi;
@@ -24,6 +45,46 @@ struct T5 {
 	public float draught;
 	public string dest;
 	public bool dte;
+}
+
+struct T18 {			// 1 sequent
+	public UInt16 type;
+	public UInt16 repeat;
+	public UInt32 mmsi;
+	public float speed;
+	public Boolean accuracy;
+	public float lon;
+	public float lat;
+	public float course;
+	public UInt16 heading;
+	public UInt16 second;
+	public UInt16 regional;
+	public Boolean cs;
+	public Boolean display;
+	public Boolean dsc;
+	public Boolean band;
+	public Boolean msg22;
+	public Boolean assign;
+	public Boolean raim;
+	public UInt32 radio;
+}
+
+struct T24 {
+	public UInt16 type;
+	public UInt16 repeat;
+	public UInt32 mmsi;
+	public UInt16 partno;
+	public string vessel_a;
+	public UInt16 shiptype_b;
+	public string vendorid_b;
+	public UInt16 model_b;
+	public UInt32 serial_b;
+	public string callsign_b;
+	public UInt16 bow_b;
+	public UInt16 stern_b;
+	public UInt16 port_b;
+	public UInt16 starboard_b;
+	public UInt32 m_mmsi_b;
 }
 
 struct T1_3 {
@@ -52,11 +113,19 @@ namespace hello
 			//string ais = "aaaaaaaaaabc!AIVDM,1,1,,B,139eb:PP00PIHDNMdd6@0?vN2D2s,0*43";
 			//string ais = "!AIVDM,2,1,9,B,53nFBv01SJ<thHp6220H4heHTf2222222222221?50:454o<`9QSlUDp,0*09";
 			//string ais = "!AIVDM,2,1,9,B,53nFBv01SJ<thHp6220H4heHTf2222222222221?50:454o<`9QSlUDp888888888888880,0*09";
-			string ais = "!AIVDM,3,1,5,A,36KVnDh02wawaHPDA8T8h6tT8000t=AV=maD7?>BWiKIE@TR<2QfvaAF1ST4H31B,0*35";
+			//string ais = "!AIVDM,3,1,5,A,36KVnDh02wawaHPDA8T8h6tT8000t=AV=maD7?>BWiKIE@TR<2QfvaAF1ST4H31B,0*35";
 //			string ais = "!AIVDM,2,1,6,B,56:fS:D0000000000008v0<QD4r0`T4v3400000t0`D147?ps1P00000000000000000008,0*3D";
-//			
+			//string ais = "!AIVDM,2,1,1,A,53m66:000000h4l4000e>0pu8LD000000000001J3hj<04000<Slk3h0000000000000003,0*5E";
+			//string ais = "!AIVDM,1,1,,A,B1P2Wk@0G27Kp?3PDg<fcwlW1P06,0*6F";
+			//string ais = "!AIVDM,1,1,,B,4025;PAuho;N>0NJbfMRhNA00D3l,0*66";
+			//string ais = "!AIVDM,1,1,,B,H>DQ@04N6DeihhlPPPPPPP000000,0*0E";
+			string ais = "!AIVDM,1,1,,A,H7P<1>4UB1I0000F=Aqpoo2P2220,0*3A";
 
-			string six_bit = cariAIVM (ais);
+			string ais_fix = cariAIVM (ais);
+			Console.WriteLine ("ais_fix: {0}", ais_fix);
+			string six_bit = cariPayloadAis (ais_fix);
+
+			Console.WriteLine ();
 			string sBit = SixBitBiner (six_bit);
 
 			int type = Convert.ToUInt16(bin2int(sBit.Substring (0, 6)));
@@ -69,15 +138,193 @@ namespace hello
 					Console.WriteLine("Masuk ke Parsing T1_3");
 					ParsingT1_3 (sBit);
 				break;
+			case 4:
+					Console.WriteLine("Masuk ke Parsing T4");
+					ParsingT4 (sBit);
+				break;
 			case 5:
-				ParsingT5 (sBit);
+					ParsingT5 (sBit);
+				break;
+			case 18:
+					Console.WriteLine("Masuk ke Parsing T18");
+					ParsingT18 (sBit);
+				break;
+			case 24:
+					Console.WriteLine("Masuk ke Parsing T24");
+					ParsingT24 (sBit);
 				break;
 			};
 
 		}
 
+		static T18 ParsingT18 (string sBit)	{
+			T18 stt = new T18();
+
+			stt.type = Convert.ToUInt16(bin2int(sBit.Substring (0, 6)));
+			stt.repeat = Convert.ToUInt16(bin2int(sBit.Substring (6, 2)));
+			stt.mmsi = Convert.ToUInt32(bin2int(sBit.Substring (8, 30)));
+			stt.speed = (bin2int(sBit.Substring (46, 10)))/10;
+			stt.accuracy = Convert.ToBoolean(bin2int(sBit.Substring (56, 1)));
+
+			bool west = Convert.ToBoolean(bin2int(sBit.Substring (57, 1)));
+			UInt32 lon = Convert.ToUInt32(bin2int(sBit.Substring (57, 28)));
+			stt.lon = getPos (lon, west);
+
+			bool south = Convert.ToBoolean(bin2int(sBit.Substring (85, 1)));
+			UInt32 lat = Convert.ToUInt32(bin2int(sBit.Substring (85, 27)));
+			stt.lat = getPos(lat, south);
+
+			stt.course = (bin2int(sBit.Substring (112, 12)))/10;
+			stt.heading = Convert.ToUInt16(bin2int(sBit.Substring (124, 9)));
+			stt.second = Convert.ToUInt16(bin2int(sBit.Substring (133, 6)));
+			stt.regional = Convert.ToUInt16(bin2int(sBit.Substring (139, 2)));
+
+			stt.cs = Convert.ToBoolean(bin2int(sBit.Substring (141, 1)));
+			stt.display = Convert.ToBoolean(bin2int(sBit.Substring (142, 1)));
+			stt.dsc = Convert.ToBoolean(bin2int(sBit.Substring (143, 1)));
+			stt.band = Convert.ToBoolean(bin2int(sBit.Substring (144, 1)));
+			stt.msg22 = Convert.ToBoolean(bin2int(sBit.Substring (145, 1)));
+			stt.assign = Convert.ToBoolean(bin2int(sBit.Substring (146, 1)));
+
+			stt.raim = Convert.ToBoolean(bin2int(sBit.Substring (147, 1)));
+			stt.radio = Convert.ToUInt32(bin2int(sBit.Substring (148,19)));
+
+			#if DISP_DEBUG
+			Console.WriteLine ("tip: {0}", stt.type);
+			Console.WriteLine ("rep: {0}", stt.repeat);
+			Console.WriteLine ("mms: {0} ", stt.mmsi);
+			Console.WriteLine ("spe: {0} ", stt.speed);
+			Console.WriteLine ("acc: {0} ", stt.accuracy);
+			Console.WriteLine ("lon: {0} ", stt.lon);
+			Console.WriteLine ("lat: {0} ", stt.lat);
+			Console.WriteLine ("cou: {0} ", stt.course);
+			Console.WriteLine ("hea: {0} ", stt.heading);
+			Console.WriteLine ("sec: {0} ", stt.second);
+			Console.WriteLine ("reg: {0} ", stt.regional);
+
+			Console.WriteLine ("csu: {0} ", stt.cs);
+			Console.WriteLine ("dis: {0} ", stt.display);
+			Console.WriteLine ("dsc: {0} ", stt.dsc);
+			Console.WriteLine ("ban: {0} ", stt.band);
+			Console.WriteLine ("msg: {0} ", stt.msg22);
+			Console.WriteLine ("ass: {0} ", stt.assign);
+
+			Console.WriteLine ("rai: {0} ", stt.raim);
+			Console.WriteLine ("rad: {0} ", stt.radio);
+			#endif
+
+			return stt;
+		}
+
+		/*
+		static int checksum(string stringToCalculateTheChecksumOver)	{
+			
+			int checksum = 0; 
+			for (int i = 0; i < stringToCalculateTheChecksumOver.length; i++){ 
+				checksum ^= Convert.ToByte(sentence[i]);}
+		}
+		//*/
+
+		static T24 ParsingT24(string sBit) {
+			T24 stt = new T24 ();
+			stt.type = Convert.ToUInt16(bin2int(sBit.Substring (0, 6)));
+			stt.repeat = Convert.ToUInt16(bin2int(sBit.Substring (6, 2)));
+			stt.mmsi = Convert.ToUInt32(bin2int(sBit.Substring (8, 30)));
+			stt.partno = Convert.ToUInt16(bin2int(sBit.Substring (38, 2)));
+
+			if (stt.partno == 0) {
+				stt.vessel_a = str6bit(sBit.Substring (40, 120));
+			} else {
+				stt.shiptype_b = Convert.ToUInt16(bin2int(sBit.Substring (40, 8)));
+				stt.vendorid_b = str6bit(sBit.Substring (48, 18));
+				stt.model_b = Convert.ToUInt16(bin2int(sBit.Substring (66, 4)));
+				stt.serial_b = Convert.ToUInt32(bin2int(sBit.Substring (70, 20)));
+				stt.callsign_b = str6bit(sBit.Substring (90, 42));
+				stt.bow_b = Convert.ToUInt16(bin2int(sBit.Substring (132, 9)));
+				stt.stern_b = Convert.ToUInt16(bin2int(sBit.Substring (141, 9)));
+				stt.port_b = Convert.ToUInt16(bin2int(sBit.Substring (150, 6)));
+				stt.starboard_b = Convert.ToUInt16(bin2int(sBit.Substring (156, 6)));
+				stt.m_mmsi_b = Convert.ToUInt32(bin2int(sBit.Substring (132, 30)));
+			}
+
+			#if DISP_DEBUG
+			Console.WriteLine ("tip: {0}", stt.type);
+			Console.WriteLine ("rep: {0}", stt.repeat);
+			Console.WriteLine ("mss: {0}", stt.mmsi);
+			Console.WriteLine ("pno: {0}", stt.partno);
+
+			if (stt.partno == 0)
+				Console.WriteLine ("mon: {0}", stt.vessel_a);
+			else {
+				Console.WriteLine ("shp: {0}", stt.shiptype_b);
+				Console.WriteLine ("ven: {0}", stt.vendorid_b);
+				Console.WriteLine ("mod: {0}", stt.model_b);
+				Console.WriteLine ("ser: {0}", stt.serial_b);
+				Console.WriteLine ("cal: {0}", stt.callsign_b);
+				Console.WriteLine ("bow: {0}", stt.bow_b);
+				Console.WriteLine ("ste: {0}", stt.stern_b);
+				Console.WriteLine ("por: {0}", stt.port_b);
+				Console.WriteLine ("sta: {0}", stt.starboard_b);
+				Console.WriteLine ("mmm: {0}", stt.m_mmsi_b);
+			}
+			#endif
+
+
+			return stt;
+		}
+
+		static T4 ParsingT4 (string sBit)	{
+			//Console.WriteLine ("len: {1}, sBit: {0}", sBit, sBit.Length);
+			T4 stt = new T4();
+
+			stt.type = Convert.ToUInt16(bin2int(sBit.Substring (0, 6)));
+			stt.repeat = Convert.ToUInt16(bin2int(sBit.Substring (6, 2)));
+			stt.mmsi = Convert.ToUInt32(bin2int(sBit.Substring (8, 30)));
+
+			stt.year = Convert.ToUInt16(bin2int(sBit.Substring (38, 14)));
+			stt.month = Convert.ToUInt16(bin2int(sBit.Substring (52, 4)));
+			stt.day = Convert.ToUInt16(bin2int(sBit.Substring (56, 5)));
+			stt.hour = Convert.ToUInt16(bin2int(sBit.Substring (61, 5)));
+			stt.minute = Convert.ToUInt16(bin2int(sBit.Substring (66, 6)));
+			stt.second = Convert.ToUInt16(bin2int(sBit.Substring (72, 6)));
+
+			stt.accuracy = Convert.ToBoolean(bin2int(sBit.Substring (78, 1)));
+			bool west = Convert.ToBoolean(bin2int(sBit.Substring (79, 1)));
+			UInt32 lon = Convert.ToUInt32(bin2int(sBit.Substring (79, 28)));
+			stt.lon = getPos (lon, west);
+
+			bool south = Convert.ToBoolean(bin2int(sBit.Substring (107, 1)));
+			UInt32 lat = Convert.ToUInt32(bin2int(sBit.Substring (107, 27)));
+			stt.lat = getPos(lat, south);
+
+
+			stt.epfd = Convert.ToUInt16(bin2int(sBit.Substring (134, 4)));
+			stt.raim = Convert.ToBoolean(bin2int(sBit.Substring (148, 1)));
+			stt.radio = Convert.ToUInt32(bin2int(sBit.Substring (149,19)));
+
+
+			#if DISP_DEBUG
+			Console.WriteLine ("tip: {0}", stt.type);
+			Console.WriteLine ("rep: {0}", stt.repeat);
+			Console.WriteLine ("mss: {0}", stt.mmsi);
+			Console.WriteLine ("yea: {0}", stt.year);
+			Console.WriteLine ("mon: {0}", stt.month);
+			Console.WriteLine ("day: {0}", stt.day);
+			Console.WriteLine ("hou: {0}", stt.hour);
+			Console.WriteLine ("min: {0}", stt.minute);
+			Console.WriteLine ("sec: {0}", stt.second);
+			Console.WriteLine ("lon: {0}", stt.lon);
+			Console.WriteLine ("lat: {0}", stt.lat);
+			Console.WriteLine ("epf: {0}", stt.epfd);
+			Console.WriteLine ("rai: {0}", stt.raim);
+			Console.WriteLine ("rad: {0}", stt.radio);
+			#endif
+
+			return stt;
+		}
+
 		static T5 ParsingT5 (string sBit)	{
-			Console.WriteLine ("len: {1}, sBit: {0}", sBit, sBit.Length);
+			//Console.WriteLine ("len: {1}, sBit: {0}", sBit, sBit.Length);
 			T5 stt = new T5();
 
 			stt.type = Convert.ToUInt16(bin2int(sBit.Substring (0, 6)));
@@ -101,6 +348,7 @@ namespace hello
 			stt.dest = str6bit(sBit.Substring (302, 120));
 			stt.dte = Convert.ToBoolean(bin2int(sBit.Substring (422, 1)));
 
+			#if DISP_DEBUG
 			Console.WriteLine ("tip: {0}", stt.type);
 			Console.WriteLine ("rep: {0}", stt.repeat);
 			Console.WriteLine ("mms: {0} ", stt.mmsi);
@@ -122,6 +370,7 @@ namespace hello
 			Console.WriteLine ("dra: {0}", stt.draught);
 			Console.WriteLine ("des: {0}", stt.dest);
 			Console.WriteLine ("dte: {0}", stt.dte);
+			#endif
 
 			return stt;
 		}
@@ -147,9 +396,9 @@ namespace hello
 				x += 6;
 
 			}
-			//Console.WriteLine ("{1}\r\n", ss);
+
 			string s = new string(ss);
-			Console.WriteLine(s);
+			//Console.WriteLine(s);
 			return s;
 		}
 
@@ -204,6 +453,7 @@ namespace hello
 			//Console.WriteLine ("radio: {0}", bin2int(sBit.Substring (149)));
 			stt.radio = Convert.ToUInt32(bin2int(sBit.Substring (149,19)));
 
+			#if DISP_DEBUG
 			Console.WriteLine ("tip: {0}", stt.type);
 			Console.WriteLine ("rep: {0}", stt.repeat);
 			Console.WriteLine ("mms: {0} ", stt.mmsi);
@@ -219,6 +469,7 @@ namespace hello
 			Console.WriteLine ("man: {0} ", stt.manuver);
 			Console.WriteLine ("rai: {0} ", stt.raim);
 			Console.WriteLine ("rad: {0} ", stt.radio);
+			#endif
 
 			return stt;
 		}
@@ -246,19 +497,22 @@ namespace hello
 		}
 
 		static string cariAIVM(string ais) {
-			int x,st=0;
+			int x, st = 0;
 			// find !AIVMD or !AIVDO
-			for (x=0; x<ais.Length; x++) {
-				if (ais.Substring(x,5) == "!AIVD") {
-					st=x;
+			for (x = 0; x < ais.Length; x++) {
+				if (ais.Substring (x, 5) == "!AIVD") {
+					st = x;
 					break;
 				}
 			}
+			return (ais.Substring (st, ais.Length - st));
+		}
 
-			string ais_str = ais.Substring (st, ais.Length - st);
-			Console.WriteLine(ais_str);
+		static string cariPayloadAis(string ais_str) {
+			//string ais_str = ais.Substring (st, ais.Length - st);
+			//Console.WriteLine(ais_str);
 
-			int y=0,ais_s=0,ais_f=0;
+			int x=0, y=0,ais_s=0,ais_f=0;
 			for (x=0; x<ais_str.Length; x++) {
 				if(ais_str.Substring(x,1)==",") {
 					y++;
@@ -342,11 +596,11 @@ namespace hello
 			//Console.WriteLine(sixbit);
 
 			string ais_bin="";
-			int z,x, y;
+			int z,x;
 
 			for (x=0; x<sixbit.Length; x++) {
 				z=sixbit[x];
-				y=(x+1)*6-5;
+				//y=(x+1)*6-5;
 				//Console.WriteLine(six_bit_table[z]);
 				ais_bin += six_bit_table [z];
 			}
