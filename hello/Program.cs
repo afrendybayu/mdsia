@@ -119,7 +119,11 @@ namespace hello
 			//string ais = "!AIVDM,1,1,,A,B1P2Wk@0G27Kp?3PDg<fcwlW1P06,0*6F";
 			//string ais = "!AIVDM,1,1,,B,4025;PAuho;N>0NJbfMRhNA00D3l,0*66";
 			//string ais = "!AIVDM,1,1,,B,H>DQ@04N6DeihhlPPPPPPP000000,0*0E";
-			string ais = "!AIVDM,1,1,,A,H7P<1>4UB1I0000F=Aqpoo2P2220,0*3A";
+			//string ais = "!AIVDM,1,1,,A,H7P<1>4UB1I0000F=Aqpoo2P2220,0*3A";
+			string ais = "!AIVDM,1,1,,B,177KQJ5000G?tO`K>RA1wUbN0TKH,0*5C";
+
+			cek_cs (ais);
+			return;
 
 			string ais_fix = cariAIVM (ais);
 			Console.WriteLine ("ais_fix: {0}", ais_fix);
@@ -155,6 +159,27 @@ namespace hello
 				break;
 			};
 
+		}
+
+		static bool cek_cs(string ais)	{
+			string cs = ais.Substring (ais.Length - 2);
+			string pl = ais.Substring (1, ais.Length - 4);
+			//Console.WriteLine ("cs: {0} {1}", cs, bin2int(cs));
+			//Console.WriteLine ("pl: {0}", pl);
+
+			UInt16 check = 0;
+			for (int c = 0; c < pl.Length; c++) {
+				check ^= Convert.ToChar(pl[c]);
+				//Console.WriteLine ("cs: {0}", check);
+			}
+			Console.WriteLine ("akhir: {0:X} {1} {2}", check, Convert.ToInt32(cs, 16), check.ToString());
+
+			if (Convert.ToInt16 (cs, 16) == check) {
+				Console.WriteLine ("checksum SAMA");
+				return true;
+			}
+			else
+				return false;
 		}
 
 		static T18 ParsingT18 (string sBit)	{
